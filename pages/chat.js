@@ -1,73 +1,19 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components'
 import React from 'react'
 import appConfig from '../config.json'
-import { createClient } from '@supabase/supabase-js'
-
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI5OTU1OCwiZXhwIjoxOTU4ODc1NTU4fQ.zKnQRGdvfPa41LgFUYeLjV1U9-O9t-bTX319J1oqhsA'
-const SUPABASE_URL = 'https://tymbkqwsznypdjkafchf.supabase.co'
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-
-/*
-fetch(`${SUPABASE_URL}/rest/v1/mensagens?select=*`, {
-    headers: {
-        'Content- Type': 'application/json',
-        'apikey': supabaseAnonKey,
-        'Authorrization': 'Bearer' + supabaseAnonKey,
-    }
-})
-.then((res) => {
-    return res.json();
-})
-.then((response) => {
-    console.log(response);
-});
-*/
 
 export default function ChatPage() {
   const [mensagem, setMensagem] = React.useState('')
   const [listaDeMensagens, setListaDeMensagens] = React.useState([])
 
-  React.useEffect(() => {
-    supabaseClient
-      .from('mensagens')
-      .select('*')
-      .order('id', { ascending: false })
-      .then(({ data }) => {
-        console.log('Dados da consulta:', data)
-        setListaDeMensagens(data)
-      })
-  }, [])
-
-  // Sua lógica vai aqui
-
-  // ./Sua lógica vai aqui
-
-  /* Usuário
-    // usuário aperta enter para enviar
-    // tem que adicionar o texto na listagem 
-    // Dev
-    // usar o onChange, useState
-    // lista de mensagens */
-
   function handleNovaMensagem(novaMensagem) {
     const mensagem = {
-      // id: listaDeMensagens.length + 1,
+      id: listaDeMensagens.length + 1,
       de: 'gabriel1999ap',
       texto: novaMensagem
     }
 
-    supabaseClient
-      .from('mensagens')
-      .insert([
-        // Tem que ser um objeto com os MESMOS CAMPOS que você escreveu no supabase
-        mensagem
-      ])
-      .then(({ data }) => {
-        console.log('Criando Mensagem: ', data)
-        setListaDeMensagens([data[0], ...listaDeMensagens])
-      })
-
+    setListaDeMensagens([mensagem, ...listaDeMensagens])
     setMensagem('')
   }
 
@@ -116,10 +62,10 @@ export default function ChatPage() {
           {/* {listaDeMensagens.map((mensagemAtual) => {
                         return (
                             <li key={mensagemAtual.id}>
-                                {mensagemAtual.de}:{mensagemAtual.texto}
+                                {mensagemAtual.de}: {mensagemAtual.texto}
                             </li>
                         )
-                    })}*/}
+                    })} */}
           <Box
             as="form"
             styleSheet={{
@@ -130,7 +76,6 @@ export default function ChatPage() {
             <TextField
               value={mensagem}
               onChange={event => {
-                console.log(event)
                 const valor = event.target.value
                 setMensagem(valor)
               }}
@@ -153,27 +98,6 @@ export default function ChatPage() {
                 color: appConfig.theme.colors.neutrals[200]
               }}
             />
-            <Button
-              onClick={() => handleNovaMensagem(mensagem)}
-              label="Enviar"
-              styleSheet={{
-                width: '20%',
-                border: '0',
-                resize: 'none',
-                borderRadius: '5px',
-                padding: '6px 8px',
-                backgroundColor: appConfig.theme.colors.neutrals[500],
-                marginRight: '12px',
-                color: appConfig.theme.colors.neutrals[100]
-              }}
-              onKeyPress={event => {
-                if (event.key === 'Enviar') {
-                  event.preventDefault()
-
-                  handleNovaMensagem(mensagem)
-                }
-              }}
-            />
           </Box>
         </Box>
       </Box>
@@ -193,11 +117,11 @@ function Header() {
           justifyContent: 'space-between'
         }}
       >
-        <Text variant="heading5">💬Chat💬</Text>
+        <Text variant="heading5">Chat</Text>
         <Button
           variant="tertiary"
           colorVariant="neutral"
-          label="❌Sair❌"
+          label="Logout"
           href="/"
         />
       </Box>
@@ -206,12 +130,12 @@ function Header() {
 }
 
 function MessageList(props) {
-  console.log(props.listaDeMensagens)
+  console.log(props)
   return (
     <Box
       tag="ul"
       styleSheet={{
-        overflow: 'auto',
+        overflow: 'scroll',
         display: 'flex',
         flexDirection: 'column-reverse',
         flex: 1,
@@ -246,7 +170,7 @@ function MessageList(props) {
                   display: 'inline-block',
                   marginRight: '8px'
                 }}
-                src={`https://github.com/${mensagem.de}.png`}
+                src={`https://github.com/gabriel1999ap.png`}
               />
               <Text tag="strong">{mensagem.de}</Text>
               <Text
