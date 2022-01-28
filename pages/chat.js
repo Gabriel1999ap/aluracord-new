@@ -2,29 +2,26 @@ import { Box, Text, TextField, Image, Button } from '@skynexui/components'
 import React from 'react'
 import appConfig from '../config.json'
 import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router'
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker'
 
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzI5OTU1OCwiZXhwIjoxOTU4ODc1NTU4fQ.zKnQRGdvfPa41LgFUYeLjV1U9-O9t-bTX319J1oqhsA'
 const SUPABASE_URL = 'https://tymbkqwsznypdjkafchf.supabase.co'
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-/*
-fetch(`${SUPABASE_URL}/rest/v1/mensagens?select=*`, {
-    headers: {
-        'Content- Type': 'application/json',
-        'apikey': supabaseAnonKey,
-        'Authorrization': 'Bearer' + supabaseAnonKey,
-    }
-})
-.then((res) => {
-    return res.json();
-})
-.then((response) => {
-    console.log(response);
-});
-*/
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+  return supabaseClient
+    .from('mensagens')
+    .on('INSERT', respostaLive => {
+      adicionaMensagem(respostaLive.new)
+    })
+    .subscribe()
+}
 
 export default function ChatPage() {
+  const roteamento = useRouter()
+  const usuarioLogado = roteamento.query.username
   const [mensagem, setMensagem] = React.useState('')
   const [listaDeMensagens, setListaDeMensagens] = React.useState([])
 
@@ -34,9 +31,18 @@ export default function ChatPage() {
       .select('*')
       .order('id', { ascending: false })
       .then(({ data }) => {
-        console.log('Dados da consulta:', data)
+        // console.log('Dados da consulta:', data)
         setListaDeMensagens(data)
       })
+
+    const subscription = escutaMensagensEmTempoReal(novaMensagem => {
+      setListaDeMensagens(valorAtualDaLista => {
+        return [novaMensagem, ...valorAtualDaLista]
+      })
+    })
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Sua lógica vai aqui
@@ -53,19 +59,15 @@ export default function ChatPage() {
   function handleNovaMensagem(novaMensagem) {
     const mensagem = {
       // id: listaDeMensagens.length + 1,
-      de: 'gabriel1999ap',
+      de: usuarioLogado,
       texto: novaMensagem
     }
 
     supabaseClient
       .from('mensagens')
-      .insert([
-        // Tem que ser um objeto com os MESMOS CAMPOS que você escreveu no supabase
-        mensagem
-      ])
+      .insert([mensagem])
       .then(({ data }) => {
         console.log('Criando Mensagem: ', data)
-        setListaDeMensagens([data[0], ...listaDeMensagens])
       })
 
     setMensagem('')
@@ -153,6 +155,7 @@ export default function ChatPage() {
                 color: appConfig.theme.colors.neutrals[200]
               }}
             />
+
             <Button
               onClick={() => handleNovaMensagem(mensagem)}
               label="Enviar"
@@ -172,6 +175,12 @@ export default function ChatPage() {
 
                   handleNovaMensagem(mensagem)
                 }
+              }}
+            />
+            <ButtonSendSticker
+              onStickerClick={sticker => {
+                // console.log('[USANDO O COMPONENTE] Salva esse sticker no banco', sticker);
+                handleNovaMensagem(':sticker: ' + sticker)
               }}
             />
           </Box>
@@ -206,7 +215,7 @@ function Header() {
 }
 
 function MessageList(props) {
-  console.log(props.listaDeMensagens)
+  console.log(props)
   return (
     <Box
       tag="ul"
@@ -260,7 +269,21 @@ function MessageList(props) {
                 {new Date().toLocaleDateString()}
               </Text>
             </Box>
-            {mensagem.texto}
+
+            {mensagem.texto.startsWith(':sticker:') ? (
+              <Image
+                height="100px"
+                width="100px"
+                src={mensagem.texto.replace(':sticker:', '')}
+              />
+            ) : (
+              mensagem.texto
+            )}
+            {/* if mensagem de texto possui stickers:
+                           mostra a imagem
+                        else 
+                           mensagem.texto */}
+            {/* {mensagem.texto} */}
           </Text>
         )
       })}

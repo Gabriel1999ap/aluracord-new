@@ -65,8 +65,10 @@ function Titulo(props) {
 
 export default function PaginaInicial() {
   //  const username = 'gabriel1999ap'
-  const [username, setUsername] = React.useState('gabriel1999ap')
+  const [username, setUsername] = React.useState('')
   const roteamento = useRouter()
+  const imagem =
+    'https://rockcontent.com/br/wp-content/uploads/sites/2/2020/03/github.jpg.webp'
 
   return (
     <>
@@ -107,7 +109,7 @@ export default function PaginaInicial() {
             onSubmit={function (infosDoEvento) {
               infosDoEvento.preventDefault()
               console.log('Alguem submeteu o form')
-              roteamento.push('/chat')
+              roteamento.push(`/chat?username=${username}`)
 
               // window.location.href = '/chat';
             }}
@@ -145,9 +147,11 @@ export default function PaginaInicial() {
               }}
             />*/}
             <TextField
+              required
+              placeholder="Informe seu usuário do GitHub"
               value={username}
               onChange={function (event) {
-                console.log('usuario digitou', event.target.value)
+                //console.log('usuario digitou', event.target.value)
                 //Onde esta o valor?
                 const valor = event.target.value
                 //trocar o valor da variavel
@@ -199,7 +203,11 @@ export default function PaginaInicial() {
                 borderRadius: '50%',
                 marginBottom: '16px'
               }}
-              src={`https://github.com/${username}.png`}
+              src={
+                username.length > 2
+                  ? `https://github.com/${username}.png`
+                  : imagem
+              }
             />
             <Text
               variant="body4"
